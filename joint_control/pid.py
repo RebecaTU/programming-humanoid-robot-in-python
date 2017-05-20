@@ -10,6 +10,7 @@
 '''
 
 # add PYTHONPATH
+
 import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'introduction'))
@@ -31,6 +32,7 @@ class PIDController(object):
         '''
         self.dt = dt
         self.u = np.zeros(size)
+        self.e = np.zeros(size) 
         self.e1 = np.zeros(size)
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
@@ -53,6 +55,26 @@ class PIDController(object):
         @return control signal
         '''
         # YOUR CODE HERE
+
+        #we create a new variable equal the sensor.joint (we don't want to delete the value of sensor.joint)
+        self.sensorJoint = sensor.joint
+
+        #we compute the prediction, the speed is self.y and the current sensor joint
+
+        self.sensorJoint = sensor.joint + self.u * self.dt
+
+        
+        # first error, we use the prediction that we have already calculated
+        self.e = target.joints-self.sensorJoint
+
+        #control
+        #at the beginning we will have just self.e. this is the control without prediction
+        self.u = self.u +self.e*(self.Kp+self.Ki*self.dt+self.Kp/self.dt)-self.e1*(self.Kp+(2*self.Kd)/self.dt) + self.e2*(self.Kd/self.dt)
+        
+        # we shift the error
+        self.e2 =self.e1
+        self.e1= self.e
+
 
         return self.u
 
