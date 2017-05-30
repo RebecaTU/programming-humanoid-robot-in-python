@@ -49,17 +49,23 @@ class AngleInterpolationAgent(PIDAgent):
 
         #Calculate the time differences and joint position differences between the target and sensor
         for i in range(len(names)):
+            #name of the joint
             joint_name = names[i]
+            #the name that we use are only the one that are known
             if joint_name in self.joint_names:
+                #different time
+                #we are going to have two different equation that depend on the time of the Bezier interpolation
                 for j in range(len(times[i])-1):
+                    #for the first point in the Bezier interpolation
                     if time_diff < times[i][0]:
                         target_joints[joint_name] = self.first_bezier(keys,i,joint_name,time_diff,times)
+                    #if we are between point in the middle of the interpolation and until the last point 
                     elif times[i][j] < time_diff < times [i][j +1] and j+1 < len(times[i]):
-                        target_joints[joint_name] = self.bezier_angle(keys,i,j,joint_name,time_diff,times)
+                        target_joints[joint_name] = self.rest_bezier(keys,i,j,joint_name,time_diff,times)
 
                         
       #Calculate Bezier interpolation (first one)  
-    def first_bezier (times,keys,index_j,joint_name, time_diff, self):
+     def first_bezier(times,keys,index_j,joint_name, time_diff, self):
         t_start = 0.0
         t_end = times[index_j][0]
         
@@ -68,12 +74,11 @@ class AngleInterpolationAgent(PIDAgent):
         p_3= keys[index_j][0][0]
         p_2= keys[index_j][0][2][2] +p_3
         
-        t = (start_time)/t_3
+        t = (time_diff) / t_3
         
         return self.calculate.bezier(p_0,p_1,p_2,p_3,t)
         
-   
-    def bezier_angle(times,keys,index_j,t_index,joint_name,time_diff,self):
+    def rest_bezier(times,keys,index_j,t_index,joint_name,time_diff,self):
         t_start = 0.0
         t_end = times[index_j][0]
         
@@ -88,7 +93,7 @@ class AngleInterpolationAgent(PIDAgent):
         
        
         
-    #Calculation bezier interpolation
+    #Calculation bezier interpolation.
     def calculate_bezier(p_0, p_1, p_2, p_3, t):
         c_0 = pow(1-t,3)
         c_1 = 3 * pow(1-t,2)
