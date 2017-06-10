@@ -37,9 +37,9 @@ class PIDController(object):
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
         delay = 0
-        self.Kp = 35
-        self.Ki = 0.3
-        self.Kd = 0.1
+        self.Kp = 32
+        self.Ki = 1
+        self.Kd = -0.2
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -57,24 +57,24 @@ class PIDController(object):
         # YOUR CODE HERE
 
         #we create a new variable equal the sensor.joint (we don't want to delete the value of sensor.joint)
-        self.sensorJoint = sensor.joint
+        #self.sensorJoint = sensor
 
         #we compute the prediction, the speed is self.y and the current sensor joint
 
-        self.sensorJoint = sensor.joint + self.u * self.dt
+        ##sensor.joint and target.joint
+        sensorJoint = sensor + self.u * self.dt
 
         
         # first error, we use the prediction that we have already calculated
-        self.e = target.joints-self.sensorJoint
+        self.e = target - sensorJoint
 
         #control
         #at the beginning we will have just self.e. this is the control without prediction
-        self.u = self.u +self.e*(self.Kp+self.Ki*self.dt+self.Kp/self.dt)-self.e1*(self.Kp+(2*self.Kd)/self.dt) + self.e2*(self.Kd/self.dt)
+        self.u = self.u + self.e * (self.Kp + self.Ki * self.dt + self.Kd/self.dt) - self.e1 * (self.Kp + (2 * self.Kd)/self.dt) + self.e2 * (self.Kd/self.dt)
         
         # we shift the error
-        self.e2 =self.e1
-        self.e1= self.e
-
+        self.e2 = self.e1
+        self.e1 = self.e
 
         return self.u
 

@@ -11,9 +11,13 @@
 
 
 import pickle
+from os import listdir
+from sklearn import metrics,svm
+import scipy
+import numpy
+
 from angle_interpolation import AngleInterpolationAgent
 from keyframes import hello
-from os import listdir, path
 
 ROBOT_POSE_CLF = 'robot_pose.pkl'
 ROBOT_POSE_DATA_DIR = 'robot_pose_data'
@@ -47,11 +51,13 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         data.append(perception.joint['RHipPitch'])
         data.append(perception.joint['RKneePitch'])
         data+=perception.imu
+
+        data = numpy.array(data).reshape(1, -1)
         index = self.posture_classifier.predict(data)
         posture = classes[index[0]]
         return posture
 
 if __name__ == '__main__':
     agent = PostureRecognitionAgent()
-    agent.keyframes = leftBackToStand() #hello()  # CHANGE DIFFERENT KEYFRAMES
+    #agent.keyframes = hello() #leftBackToStand() hello()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()

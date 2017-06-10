@@ -6,8 +6,8 @@
 '''
 
 
+from keyframes import leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
 from recognize_posture import PostureRecognitionAgent
-from keyframes import hello, leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
 
 
 class StandingUpAgent(PostureRecognitionAgent):
@@ -18,16 +18,11 @@ class StandingUpAgent(PostureRecognitionAgent):
     def standing_up(self):
         posture = self.posture
         # YOUR CODE HERE
-        if posture == 'Left':
-            if posture == 'Back':
-                self.keyframes = leftBackToStand()
-            elif posture == 'Belly':
+        if posture == 'Back':
+                self.keyframes = rightBackToStand()
+        elif posture == 'Belly':
                 self.keyframes = leftBellyToStand()
-        if posture == 'Right':
-            if posture == 'Back':
-                self.keyframes = rightBackToStand()   
-            elif posture == 'Belly':
-                self.keyframes = rightBellyToStand()   
+
 
 
 
