@@ -20,7 +20,7 @@
 '''
 
 from pid import PIDAgent
-from keyframes import hello  # leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
+from keyframes import hello, leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
 
 
 class AngleInterpolationAgent(PIDAgent):
@@ -30,8 +30,11 @@ class AngleInterpolationAgent(PIDAgent):
                  player_id=0,
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
-        self.start = 0.0
+
         self.keyframes = ([], [], [])
+
+        #Time
+        self.time_diff = self.perception.time
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -43,13 +46,11 @@ class AngleInterpolationAgent(PIDAgent):
 
         # time differences between the target time and the sensor times for each joint.
 
-        currenttime = self.perception.time
-
-        time_diff = currenttime - self.start
+        time_diff = perception.time - self.time_diff
 
         # to access them
 
-        (names, times, keys) = keyframes
+        names, times, keys = keyframes
 
         # Calculate the time differences and joint position differences between the target and sensor
         for i in range(len(names)):
@@ -64,56 +65,60 @@ class AngleInterpolationAgent(PIDAgent):
                     if time_diff < times[i][0]:
                         target_joints[joint_name] = self.first_bezier(times, keys, i, joint_name, time_diff)
                     # if we are between point in the middle of the interpolation and until the last point
-                    elif (times[i][j] < time_diff < times[i][j + 1]) and ((j + 1) < len(times[i])):
-                        target_joints[joint_name] = self.rest_bezier(times, keys, i, j, joint_name, time_diff)
+                    elif times[i][j] < time_diff < times[i][j + 1] and (j + 1) < len(times[i]):
+                        target_joints[joint_name] = self.rest_bezier(times, keys, i, j, time_diff)
 
         return target_joints
 
-        # Calculate Bezier interpolation (first one)
 
-    def first_bezier(self, times, keys, index_j, joint_name, time_diff):
 
-        # We compute the start time and the end one
+    def first_bezier(self, times, keys, index, joint_name, time_diff):
 
-        t_end = times[index_j][0]
+        t_end = times[index][0]
 
-        # the parameters of the spline
         p_0 = self.perception.joint[joint_name]
-        p_1 = keys[index_j][0][1][2] + p_0
-        p_3 = keys[index_j][0][0]
-        p_2 = keys[index_j][0][2][2] + p_3
+        p_3 = keys[index][0][0]
 
-        # the time of the spline
-        t = time_diff / t_end
+        p_1 = keys[index][0][1][2] + p_0
+        p_2 = keys[index][0][2][2] + p_3
 
-        return self.calculate.bezier(p_0, p_1, p_2, p_3, t)
+        dt = time_diff / t_end
 
-    def rest_bezier(self, times, keys, index_j, t_index, joint_name, time_diff):
-        # We compute the start time and the end one
-        t_end = times[index_j][0]
+        return self.calculate_bezier(p_0, p_1, p_2, p_3, dt)
 
-        # the parameters of the spline
-        p_0 = self.perception.joint[joint_name]
-        p_1 = keys[index_j][0][1][2] + p_0
-        p_3 = keys[index_j][0][0]
-        p_2 = keys[index_j][0][2][2] + p_3
+    def rest_bezier(self, times, keys, index, t_index, time_diff):
 
-        # the time of the spline
-        t = (time_diff - self.start) / (t_end - self.start)
+        t0 = times[index][t_index]
+        t3 = times[index][t_index + 1]
 
-        return self.calculate.bezier(p_0, p_1, p_2, p_3, t)
+        t1 = keys[index][t_index][1][1] + t0
+        t2 = keys[index][t_index][2][1] + t3
+
+        p_0 = keys[index][t_index][0]
+        p_3 = keys[index][t_index + 1][0]
+
+        p_1 = keys[index][t_index][1][2] + p_0
+        p_2 = keys[index][t_index][2][2] + p_3
+
+        dt = (time_diff - t0) / (t3 - t0)
+
+        return self.calculate_bezier(p_0, p_1, p_2, p_3, dt)
+
+
 
     # Calculation bezier interpolation.
-    def calculate_bezier(p_0, p_1, p_2, p_3, t):
+    def calculate_bezier(self, p_0, p_1, p_2, p_3, dt):
         # to make it easier
-        c_0 = pow(1 - t, 3)
-        c_1 = 3 * pow(1 - t, 2)
-        c_2 = 3 * (1 - t)
-        return c_0 * p_0 + c_1 * p_1 * t + c_2 * p_2 * pow(t, 2) + p_3 * pow(t, 3)
+        c_0 = pow(1 - dt, 3)
+        c_1 = 3 * pow(1 - dt, 2)
+        c_2 = 3 * (1 - dt)
+        return c_0 * p_0 + c_1 * p_1 * dt + c_2 * p_2 * pow(dt, 2) + p_3 * pow(dt, 3)
 
 
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
     agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
-    # agent.keyframes = leftBackToStand()
+    #agent.keyframes = leftBackToStand()
+    #agent.keyframes = rightBellyToStand()
+    #agent.keyframes = rightBackToStand()
     agent.run()

@@ -17,7 +17,7 @@ import scipy
 import numpy
 
 from angle_interpolation import AngleInterpolationAgent
-from keyframes import hello
+from keyframes import hello, leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
 
 ROBOT_POSE_CLF = 'robot_pose.pkl'
 ROBOT_POSE_DATA_DIR = 'robot_pose_data'
@@ -59,5 +59,5 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
 
 if __name__ == '__main__':
     agent = PostureRecognitionAgent()
-    #agent.keyframes = hello() #leftBackToStand() hello()  # CHANGE DIFFERENT KEYFRAMES
+    agent.keyframes = leftBackToStand() #hello()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()
