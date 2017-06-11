@@ -35,9 +35,26 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         self.transforms = {n: identity(4) for n in self.joint_names}
 
         # chains defines the name of chain and joints of the chain
-        self.chains = {'Head': ['HeadYaw', 'HeadPitch']
+        #name of each joint in each chain
+        self.chains = {'Head': ['HeadYaw', 'HeadPitch'],
+                       'LArm': ['LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll','LWristYaw', 'LHand'],
+                       'LLeg': ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll'],
+                       'RLeg': ['RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll'],
+                       'RArm': ['RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw', 'RHand']
+
                        # YOUR CODE HERE
                        }
+        #To know the lenght of each joint in the robot
+
+        #????? WE need the lenght of the RHand and LHand??
+        self.joint_length = {'HeadYaw': (0.0, 0.0, 126.50), 'HeadPitch': (0.0, 0.0, 0.0), #
+                             'LShoulderPitch': (0.0, 98.0, 100.0), 'LShoulderRoll': (0.0, 98.0, 100.0), 'LElbowYaw': (105.0, 98.0 + 15.0, 100.0), 'LElbowRoll': (105.0, 98.0 + 15.0, 100.0), 'LWristYaw': (105.0 + 55.95, 98.0 + 15.0, 100.0), 'LHand': (105.0 + 55.95 + 57.75, 98.0 + 15.0, 100.0 + 12.31), #
+                             'RShoulderPitch': (0.0, -98.0, 100.0), 'RShoulderRoll': (0.0, -98.0, 100.0), 'RElbowYaw': (105.0, -98.0 - 15.0, 100.0), 'RElbowRoll': (105.0, -98.0 - 15.0, 100.0), 'RWristYaw': (105.0 + 55.95, -98.0 - 15.0, 100.0), 'RHand': (105.0 + 55.95 + 57.75, -98.0 - 15.0, 100.0 + 12.31), #
+                             'LHipYawPitch': (0.0, 50.0, -85.0), 'LHipRoll': (0.0, 50.0, -85.0), 'LHipPitch': (0.0, 50.0, -85.0), 'LKneePitch': (0.0, 50.0, -85.0 - 100.0), 'LAnklePitch': (0.0, 50.0, -85.0 - 100.0 - 102.90), 'LAnkleRoll': (0.0, 50.0, -85.0 - 100.0 - 102.9), #
+                             'RHipYawPitch': (0.0, -50.0, -85.0), 'RHipRoll': (0.0, -50.0, -85.0),'RHipPitch': (0.0, -50.0, -85.0), 'RKneePitch': (0.0, -50.0, -85.0 - 100.0), 'RAnklePitch': (0.0, -50.0, -85.0 - 100.0 - 102.90), 'RAnkleRoll': (0.0, -50.0, -85.0 - 100.0 - 102.9), #
+                        }
+
+
 
     def think(self, perception):
         self.forward_kinematics(perception.joint)
@@ -53,6 +70,12 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         '''
         T = matrix()
         # YOUR CODE HERE
+
+        #We declara the seno and coseno
+        s_angle = math.sin(joint_angle)
+        c_angle = math.cos(joint_angle)
+
+
 
         return T
 
