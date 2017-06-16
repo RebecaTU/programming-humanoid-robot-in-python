@@ -31,7 +31,9 @@ class AngleInterpolationAgent(PIDAgent):
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
-        self.startTime = -1
+
+        #when we start the simulation
+        self.start_Time = -1
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -42,19 +44,17 @@ class AngleInterpolationAgent(PIDAgent):
         target_joints = {}
         # YOUR CODE HERE
 
-        # print self.keyframes
+
         if (self.keyframes == ([], [], [])):
-            # print "return"
+
             return target_joints
 
-        # adjust time value
-        if (self.startTime == -1):
-            self.startTime = perception.time
-            # print "start time"
-            # print self.startTime
-        adjTime = perception.time - self.startTime
-        # print "adj time"
-        # print adjTime
+        # At the beginning
+        if (self.start_Time == -1):
+            self.start_Time = perception.time
+
+        # and then we compute dif_Time
+        dif_Time = perception.time - self.start_Time
 
         (names, times, keys) = keyframes
 
@@ -62,63 +62,60 @@ class AngleInterpolationAgent(PIDAgent):
         skippedJoints = 0
         for (i, name) in enumerate(names):
 
-            timeLow = 0  # represents the lower threshold of the keyframe
-            timeHigh = 0  # represents the upper threshold of the keyframe
-            kfNum = 0  # the upper index of the keyframe which has to be used for interpolation
-            jointTimes = times[i]  # just for easier reading/writing
-            lenJointTimes = len(jointTimes)
+            time_0 = 0  # represents the lower threshold of the keyframe
+            time_1 = 0  # represents the upper threshold of the keyframe
+            index = 0  # the upper index of the keyframe which has to be used for interpolation
+            Time_joints = times[i]
+            lenTimes_joints = len(Time_joints)
 
             # interpolation is finished for this joint, dont do any more steps
-            if (adjTime > jointTimes[-1]):
+            if (dif_Time > Time_joints[-1]):
                 skippedJoints += 1
-                # if we skipped all joints interpolation is done -> reset timer and keyframes
+                # reset timer and keyframes
                 if (skippedJoints == len(names)):
                     self.startTime = -1
                     self.keyframes = ([], [], [])
                 continue
 
-            # iterate over all times of the current joint to find the right time span
-            for j in xrange(lenJointTimes):
-                timeHigh = jointTimes[j]
+            # iterate over all times of the current joint to find the right time
+            for j in xrange(lenTimes_joints):
+                time_1 = Time_joints[j]
 
                 # we found the right interval -> break
-                if ((adjTime >= timeLow and adjTime <= timeHigh)):
-                    kfNum = j
+                if ((dif_Time >= time_0 and dif_Time <= time_1)):
+                    index = j
                     break
-                timeLow = timeHigh
+                time_0 = time_1
 
             # calculate t-value
-            t = (adjTime - timeLow) / (timeHigh - timeLow)
+            t = (dif_Time - time_0) / (time_1 - time_0)
 
             # set p-values
-            # if kfNum == 0, we are before the first time in jointTimes -> no values for p0 and p1
-            if (kfNum == 0):
-                p3 = keys[i][kfNum][0]
-                p2 = p3 + keys[i][kfNum][1][2]
+            #Bezier interpolation is divided into two equation with different parameters.
+            #It's depends on the part of the interpolation function where we are. At the beginning index =0
+
+            # if index == 0  -> no values for p0 and p1
+
+            if index == 0:
+                p3 = keys[i][index][0]
+                p2 = p3 + keys[i][index][1][2]
                 p0 = 0
                 p1 = 0
             else:
-                p0 = keys[i][kfNum - 1][0]
-                p3 = keys[i][kfNum][0]
-                p1 = p0 + keys[i][kfNum - 1][2][2]
-                p2 = p3 + keys[i][kfNum][1][2]
+                p0 = keys[i][index - 1][0]
+                p3 = keys[i][index][0]
+                p1 = p0 + keys[i][index - 1][2][2]
+                p2 = p3 + keys[i][index][1][2]
 
-            # calculate joint angle and append to dictionary
+            # calculate joint angl
             angle = ((1 - t) ** 3) * p0 + 3 * t * ((1 - t) ** 2) * p1 + 3 * (t ** 2) * (1 - t) * p2 + (t ** 3) * p3
-            # if(name in INVERSED_JOINTS):
-            #    target_joints[name] = -1*angle
-            # else:
+
             target_joints[name] = angle
+
+            #without this doesn't work!!!!
             if (name == "LHipYawPitch"):
                 target_joints["RHipYawPitch"] = angle
                 # print degrees(angle)
-
-
-                # print "return"
-                # print target_joints
-                # self.realStartTime = -1
-                # self.keyframes = ({},{},{})
-
 
         return target_joints
 
