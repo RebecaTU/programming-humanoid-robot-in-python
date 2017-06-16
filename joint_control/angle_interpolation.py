@@ -112,7 +112,12 @@ class AngleInterpolationAgent(PIDAgent):
 
             target_joints[name] = angle
 
-            #without this doesn't work!!!!
+            #without this doesn't work.
+            #IT is said in : http://doc.aldebaran.com/2-1/family/robots/bodyparts.html#effector-chain
+            # "LHipYawPitch and RHipYawPitch share the same motor so they move simultaneously and symmetrically.
+            # In case of conflicting orders, LHipYawPitch always takes the priority.
+
+            #Because of that, we have to add also the angles in RHipYawPitch when LHipYawPitch is called
             if (name == "LHipYawPitch"):
                 target_joints["RHipYawPitch"] = angle
                 # print degrees(angle)
@@ -125,8 +130,8 @@ class AngleInterpolationAgent(PIDAgent):
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
     #agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
-    #agent.keyframes = leftBackToStand()
+    agent.keyframes = leftBackToStand()
     #agent.keyframes = rightBellyToStand()
     #agent.keyframes = rightBackToStand()
-    agent.keyframes = rightBackToStand()
+    #agent.keyframes = rightBackToStand()
     agent.run()
