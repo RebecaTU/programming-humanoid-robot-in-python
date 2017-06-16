@@ -1,23 +1,17 @@
 '''In this exercise you need to use the learned classifier to recognize current posture of robot
-
 * Tasks:
     1. load learned classifier in `PostureRecognitionAgent.__init__`
     2. recognize current posture in `PostureRecognitionAgent.recognize_posture`
-
 * Hints:
     Let the robot execute different keyframes, and recognize these postures.
-
 '''
 
-
 import pickle
-from os import listdir
-from sklearn import metrics,svm
-import scipy
-import numpy
-
 from angle_interpolation import AngleInterpolationAgent
 from keyframes import hello, leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
+
+import numpy
+from os import listdir, path
 
 ROBOT_POSE_CLF = 'robot_pose.pkl'
 ROBOT_POSE_DATA_DIR = 'robot_pose_data'
@@ -50,14 +44,17 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         data.append(perception.joint['RHipRoll'])
         data.append(perception.joint['RHipPitch'])
         data.append(perception.joint['RKneePitch'])
-        data+=perception.imu
+        data += perception.imu
 
         data = numpy.array(data).reshape(1, -1)
+
         index = self.posture_classifier.predict(data)
         posture = classes[index[0]]
         return posture
 
+
 if __name__ == '__main__':
     agent = PostureRecognitionAgent()
-    agent.keyframes = leftBackToStand() #hello()  # CHANGE DIFFERENT KEYFRAMES
+    #agent.keyframes = leftBackToStand()  # CHANGE DIFFERENT
+    agent.keyframes = rightBackToStand()
     agent.run()
