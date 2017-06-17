@@ -9,12 +9,17 @@
        and test your inverse kinematics implementation.
 '''
 
-
 from forward_kinematics import ForwardKinematicsAgent
 from numpy.matlib import identity
+import numpy as np
+from math import atan2, sqrt
 
+
+# Now we now our end position and we want to know how to compute the angle of the joint in that position
 
 class InverseKinematicsAgent(ForwardKinematicsAgent):
+    ## FOLLOWING THE NUMERICAL SOLUTION ROBOT_ARM_2D
+
     def inverse_kinematics(self, effector_name, transform):
         '''solve the inverse kinematics
 
@@ -24,13 +29,99 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         '''
         joint_angles = []
         # YOUR CODE HERE
+        Epsilon = 0.001
+
+        # at first we need to know our current effector joint position
+
+        current_joint = {}
+        for name in self.chains[effector_name][-1]:
+            current_joint[name] = self.perception.joint[name]
+
+        # the target effector position
+        target_joint = self.chains[effector_name][-1]
+        target_transform = self.from_trans(transform)
+        length = len(self.chains[effector_name])
+
+        # We will do this loop until the error almost 0, then we will be in the target position
+        while True:
+
+            self.forward_kinematics(current_joint)
+
+            # We create a new variable T with 0 and the length of self.chains
+
+            T = [0] * length
+            for i, name in enumerate(self.chains[effector_name]):
+                # Transformation matrix for each joint (effector!)
+                T[i] = self.transforms(name)
+
+            Te = np.array([self.from_trans(T[-1])])
+
+            # we calculate the error now between the target transformation and the
+            # .... transformation matrix of our current joint position
+
+            error = target_transform - Te
+
+            T = np.array([self.from_trans(i) for i in T[0:length]])
+            J = Te - T
+
+            # Traspose Jacobian
+            J_t = J.T
+            J_t[-1, :] = 1
+
+            JJT = np.dot(J, J.T)
+
+            d_theta = Epsilon * np.dot(np.dot(J.T, np.linalg.pinv(JJT)), error.T)
+
+            for i, name in enumerate(self.chains[effector_name]):
+                current_joint[name] = current_joint[name] + np.asarray(d_theta.T)[0][1]
+
+            if np.linalg.norm(d_theta) < Epsilon:
+                break
+            return current_joint
+
+        joint_angles = current_joint
+
         return joint_angles
+
+    def from_trans(self, T):
+        # return x,y,z
+        x, y, z = T[0, 3], T[1, 3], T[2, 3]
+
+        theta_x = 0
+        theta_y = 0
+        theta_z = 0
+
+        variable = sqrt(T[2,1]**2 + T[2, 2]**2)
+
+        theta_x = atan2(T[2,1], T[2, 2])
+        theta_y = atan2(-T[2,0], variable)
+        theta_z = atan2(T[1,0], T[0,0])
+
+        #euler angles
+        #if T[0, 0] == 1:
+         #   theta_x = atan2(T[2, 1], T[1, 1])
+        #elif T[1, 1] == 1:
+         #   theta_y = atan2(T[0, 2], T[0, 0])
+        #elif T[2, 2] == 1:
+         #   theta_z = atan2(T[1, 0], T[0, 0])
+
+        return np.array([x, y, z, theta_x, theta_y, theta_z])
+
+
 
     def set_transforms(self, effector_name, transform):
         '''solve the inverse kinematics and control joints use the results
         '''
         # YOUR CODE HERE
-        self.keyframes = ([], [], [])  # the result joint angles have to fill in
+        times = []
+        names = self.joint_length[effector_name]
+        keys = self.inverse_kinematics(effector_name, transform)
+        for i,name in enumerate(names):
+            keys.insert(i, [[self.perception.joint[name], [3, 0, 0]], [joint_angles[name], [3, 0, 0]]])
+
+
+        self.keyframes = (names, times , keys)  # the result joint angles have to fill in
+
 
 if __name__ == '__main__':
     agent = InverseKinematicsAgent()
