@@ -15,7 +15,6 @@ import numpy as np
 from math import atan2, sqrt
 
 
-# Now we now our end position and we want to know how to compute the angle of the joint in that position
 
 class InverseKinematicsAgent(ForwardKinematicsAgent):
     ## FOLLOWING THE NUMERICAL SOLUTION ROBOT_ARM_2D
@@ -28,13 +27,16 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         :return: list of joint angles
         '''
         joint_angles = []
+
         # YOUR CODE HERE
+        #FOLLOWING THE EXAMPLE OF 2D arm with a numerical solution
+
         Epsilon = 0.001
 
         # at first we need to know our current effector joint position
 
         current_joint = {}
-        for name in self.chains[effector_name][-1]:
+        for name in self.chains[effector_name]:
             current_joint[name] = self.perception.joint[name]
 
         # the target effector position
@@ -91,19 +93,17 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         theta_y = 0
         theta_z = 0
 
+        # How to decompose a 3x3 rotation matrix: http://nghiaho.com/?page_id=846
+
         variable = sqrt(T[2,1]**2 + T[2, 2]**2)
+
+
 
         theta_x = atan2(T[2,1], T[2, 2])
         theta_y = atan2(-T[2,0], variable)
         theta_z = atan2(T[1,0], T[0,0])
 
-        #euler angles
-        #if T[0, 0] == 1:
-         #   theta_x = atan2(T[2, 1], T[1, 1])
-        #elif T[1, 1] == 1:
-         #   theta_y = atan2(T[0, 2], T[0, 0])
-        #elif T[2, 2] == 1:
-         #   theta_z = atan2(T[1, 0], T[0, 0])
+
 
         return np.array([x, y, z, theta_x, theta_y, theta_z])
 
@@ -113,11 +113,16 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         '''solve the inverse kinematics and control joints use the results
         '''
         # YOUR CODE HERE
+        joint_angles = self.inverse_kinematics(effector_name, transform)
+
         times = []
-        names = self.joint_length[effector_name]
-        keys = self.inverse_kinematics(effector_name, transform)
-        for i,name in enumerate(names):
-            keys.insert(i, [[self.perception.joint[name], [3, 0, 0]], [joint_angles[name], [3, 0, 0]]])
+        names = self.chains[effector_name]
+        keys = []
+        # I don't have idea how to change the time in the keyframes
+        current_joint = self.perception.joint
+
+        for i, name in enumerate(names):
+            keys.insert(i, [current_joint[name]], [joint_angles[name]])
 
 
         self.keyframes = (names, times , keys)  # the result joint angles have to fill in

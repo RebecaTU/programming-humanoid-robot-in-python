@@ -44,9 +44,10 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
         #name of each joint in each chain
         self.chains = {'Head': ['HeadYaw', 'HeadPitch'],
                        'LArm': ['LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll'],
+                       'RArm': ['RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll'],
                        'LLeg': ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll'],
                        'RLeg': ['RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll'],
-                       'RArm': ['RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll']
+
                        # YOUR CODE HERE
                        }
         #To know the lenght of each joint in the robot
@@ -58,7 +59,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                              'RShoulderPitch': (0.0, -98.0, 100.0), 'RShoulderRoll': (0.0, 0.0, 0.0), 'RElbowYaw': (105.0, - 15.0, 100.0), 'RElbowRoll': (0.0, 0.0, 0.0), 'RWristYaw': (55.95, 0.0, 0.0), #
                              'LHipYawPitch': (0.0, 50.0, -85.0), 'LHipRoll': (0.0, 0.0, 0.0), 'LHipPitch': (0.0, 0.0, 0.0), 'LKneePitch': (0.0, 0.0, - 100.0), 'LAnklePitch': (0.0, 0.0,  - 102.90), 'LAnkleRoll': (0.0, 0.0, 0.0), #
                              'RHipYawPitch': (0.0, -50.0, -85.0), 'RHipRoll': (0.0, 0.0, 0.0),'RHipPitch': (0.0, 0.0, 0.0), 'RKneePitch': (0.0, 0.0, - 100.0), 'RAnklePitch': (0.0, 0.0,  - 102.90), 'RAnkleRoll': (0.0, 0.0, 0.0), #
-                        }
+                            }
 
 
     def think(self, perception):
@@ -154,9 +155,6 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
                 Tl = self.local_trans(joint, angle)
                 # YOUR CODE HERE
                 T = np.dot(T,Tl)
-
-
-
                 self.transforms[joint] = T
 
 
