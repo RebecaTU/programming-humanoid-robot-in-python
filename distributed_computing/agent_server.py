@@ -12,48 +12,83 @@
 '''
 
 # add PYTHONPATH
+
 import os
 import sys
+
+
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'kinematics'))
 
+#FOLLOWING THE EXAMPLE IN https://docs.python.org/2/library/simplexmlrpcserver.html
+import threading
+from SimpleXMLRPCServer import SimpleXMLRPCServer
+from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+
 from inverse_kinematics import InverseKinematicsAgent
+
+class RequestHandler(SimpleXMLRPCRequestHandler):
+    rpc_paths = ('/RPC2',)
 
 
 class ServerAgent(InverseKinematicsAgent):
     '''ServerAgent provides RPC service
     '''
     # YOUR CODE HERE
+
     
     def get_angle(self, joint_name):
         '''get sensor value of given joint'''
         # YOUR CODE HERE
+        return self.target_joints.get(joint_name)
     
     def set_angle(self, joint_name, angle):
         '''set target angle of joint for PID controller
         '''
         # YOUR CODE HERE
+        self.target_joints[joint_name] = angle
 
     def get_posture(self):
         '''return current posture of robot'''
         # YOUR CODE HERE
+        return self.posture
 
     def execute_keyframes(self, keyframes):
         '''excute keyframes, note this function is blocking call,
         e.g. return until keyframes are executed
         '''
         # YOUR CODE HERE
+        self.keyframes = keyframes
+        #we have to block the calling when the keyframes are finished
+
+        #??????????????????????
+
+
 
     def get_transform(self, name):
         '''get transform with given name
         '''
         # YOUR CODE HERE
+        return self.transforms[name]
 
     def set_transform(self, effector_name, transform):
         '''solve the inverse kinematics and control joints use the results
         '''
         # YOUR CODE HERE
+        self.set_transform(self, effector_name, transform)
 
 if __name__ == '__main__':
     agent = ServerAgent()
+
+    server = SimpleXMLRPCServer(("localhost", 8000), requestHandler=RequestHandler)
+    server.register_introspection_functions()
+    server.register_multicall_functions()
+    server.register_instance(agent)
+    print ("server ready")
+
+
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    print "server on localhost:8000"
+
     agent.run()
 
