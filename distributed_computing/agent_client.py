@@ -7,6 +7,7 @@
 '''
 
 import weakref
+import xmlrpclib
 
 class PostHandler(object):
     '''the post hander wraps function to be excuted in paralle
@@ -29,38 +30,46 @@ class ClientAgent(object):
     # YOUR CODE HERE
     def __init__(self):
         self.post = PostHandler(self)
+        self.RPCproxy = xmlrpclib.ServerProxy("http://localhost:8000")
     
     def get_angle(self, joint_name):
         '''get sensor value of given joint'''
         # YOUR CODE HERE
+        return self.RPCproxy.get_angle(joint_name)
     
     def set_angle(self, joint_name, angle):
         '''set target angle of joint for PID controller
         '''
         # YOUR CODE HERE
+        return self.RPCproxy.set_angle(self,joint_name, angle)
 
     def get_posture(self):
         '''return current posture of robot'''
         # YOUR CODE HERE
+        return self.RPCproxy.get_posture(self)
 
     def execute_keyframes(self, keyframes):
         '''excute keyframes, note this function is blocking call,
         e.g. return until keyframes are executed
         '''
         # YOUR CODE HERE
+        return self.RPCproxy.execute_keyframes(self, keyframes)
 
     def get_transform(self, name):
         '''get transform with given name
         '''
         # YOUR CODE HERE
+        return self.RPCproxy.get_transform(self, name)
 
     def set_transform(self, effector_name, transform):
         '''solve the inverse kinematics and control joints use the results
         '''
         # YOUR CODE HERE
+        return self.RPCproxy.set_trasform(self, effector_name, transform)
 
 if __name__ == '__main__':
     agent = ClientAgent()
     # TEST CODE HERE
+    agent.get_angle("LShoulderRoll")
 
 
