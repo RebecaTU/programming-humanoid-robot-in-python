@@ -45,22 +45,20 @@ class ServerAgent(InverseKinematicsAgent):
         '''set target angle of joint for PID controller
         '''
         # YOUR CODE HERE
+
         self.target_joints[joint_name] = angle
 
     def get_posture(self):
         '''return current posture of robot'''
         # YOUR CODE HERE
-        return self.posture
+        return self.recognize_posture(self.perception)
 
     def execute_keyframes(self, keyframes):
         '''excute keyframes, note this function is blocking call,
         e.g. return until keyframes are executed
         '''
         # YOUR CODE HERE
-        self.keyframes = keyframes
-        #we have to block the calling when the keyframes are finished
-
-        #??????????????????????
+        return self.angle_interpolation(keyframes, self.perception)
 
 
 
@@ -80,9 +78,10 @@ if __name__ == '__main__':
     agent = ServerAgent()
 
     server = SimpleXMLRPCServer(("localhost", 8000), requestHandler=RequestHandler)
+    server.register_instance(agent)
     server.register_introspection_functions()
     server.register_multicall_functions()
-    server.register_instance(agent)
+
     print ("server ready")
 
 
