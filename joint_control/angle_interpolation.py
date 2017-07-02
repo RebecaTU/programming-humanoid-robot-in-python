@@ -21,6 +21,7 @@
 
 from pid import PIDAgent
 from keyframes import hello, leftBackToStand, leftBellyToStand, rightBackToStand, rightBellyToStand, wipe_forehead
+import copy
 
 
 class AngleInterpolationAgent(PIDAgent):
@@ -45,13 +46,14 @@ class AngleInterpolationAgent(PIDAgent):
         # YOUR CODE HERE
 
 
-        if (self.keyframes == ([], [], [])):
+        if (keyframes == ([], [], [])):
 
             return target_joints
 
         # At the beginning
         if (self.start_Time == -1):
             self.start_Time = perception.time
+            self.start_angle = copy.deepcopy(perception.joint)
 
         # and then we compute dif_Time
         dif_Time = perception.time - self.start_Time
@@ -94,13 +96,14 @@ class AngleInterpolationAgent(PIDAgent):
             #Bezier interpolation is divided into two equation with different parameters.
             #It's depends on the part of the interpolation function where we are. At the beginning index =0
 
-            # if index == 0  -> no values for p0 and p1
+
 
             if index == 0:
                 p3 = keys[i][index][0]
                 p2 = p3 + keys[i][index][1][2]
-                p0 = 0
+                p0 = self.start_angle.get(name,-1)
                 p1 = 0
+                print name, p0
             else:
                 p0 = keys[i][index - 1][0]
                 p3 = keys[i][index][0]
@@ -120,8 +123,8 @@ class AngleInterpolationAgent(PIDAgent):
             #Because of that, we have to add also the angles in RHipYawPitch when LHipYawPitch is called
             if (name == "LHipYawPitch"):
                 target_joints["RHipYawPitch"] = angle
-                # print degrees(angle)
 
+        #print target_joints
         return target_joints
 
    
@@ -130,8 +133,8 @@ class AngleInterpolationAgent(PIDAgent):
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
     #agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
-    agent.keyframes = leftBackToStand()
-    #agent.keyframes = rightBellyToStand()
+    #agent.keyframes = leftBackToStand()
+    agent.keyframes = rightBellyToStand()
     #agent.keyframes = rightBackToStand()
     #agent.keyframes = rightBackToStand()
     agent.run()

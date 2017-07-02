@@ -20,8 +20,10 @@ class StandingUpAgent(PostureRecognitionAgent):
         # YOUR CODE HERE
         if posture == 'Back':
                 self.keyframes = rightBackToStand()
+                print "Back"
         elif posture == 'Belly':
                 self.keyframes = leftBellyToStand()
+                print "Belly"
 
 
 
