@@ -100,7 +100,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
             T = np.dot(T, T1)
 
         #Rotation in Y axis
-        if 'Pitch' in joint_name:
+        elif 'Pitch' in joint_name:
             T1 = matrix([[c_angle, 0, s_angle, 0],
                         [0, 1, 0, 0],
                         [-s_angle, 0, c_angle, 0],
@@ -109,14 +109,14 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
             T = np.dot(T, T1)
 
         #Rotation in Z axis
-        if 'Yaw' in joint_name:
+        elif 'Yaw' in joint_name:
             T1 = matrix([[c_angle, s_angle, 0, 0],
                         [-s_angle, c_angle, 0, 0],
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]
                         ])
             T = np.dot(T, T1)
-        if joint_name == 'LHipYawPitch' or joint_name == 'RHipYawPitch':
+        elif joint_name == 'LHipYawPitch' or joint_name == 'RHipYawPitch':
             T1 = matrix([[1, 0, 0, 0],
                          [0, math.cos(-pi/4), - math.sin(-pi/4), 0],
                          [0, math.sin(-pi/4), math.cos(-pi/4), 0],
@@ -128,7 +128,7 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
 
         else:
 
-            print "Error in joint name"
+            print "Error in joint name" + joint_name
 
         # now we have the transformation matrix with the rotation, but we need also the translation that depends on the lenght of the joint
         # For the x translation, y translation and z.
@@ -141,21 +141,30 @@ class ForwardKinematicsAgent(AngleInterpolationAgent):
 
         return T
 
+    #def forward_kinematics(self, joints):
+       # '''forward kinematics
+        #:param joints: {joint_name: joint_angle}
+        #cuando llamo a FW lo queremos hace rsolo para una cadena y no para e cuerpo entero q es lo q estamos haciendo ahora en inverse
+       # '''
+
     def forward_kinematics(self, joints):
-        '''forward kinematics
 
-        :param joints: {joint_name: joint_angle}
-        '''
-        for chain_joints in self.chains.values():
+       # for chain_joints in self.chains.values():
+           # T = identity(4)
+            #for joint in chain_joints:
 
-            T = identity(4)
-            for joint in chain_joints:
-
-                angle = joints[joint]
-                Tl = self.local_trans(joint, angle)
+                #angle = joints[joint]
+                #Tl = self.local_trans(joint, angle)
                 # YOUR CODE HERE
-                T = np.dot(T,Tl)
-                self.transforms[joint] = T
+                #T = np.dot(T,Tl)
+                #self.transforms[joint] = T
+        for name in joints:
+            T = identity(4)
+            angle = joints[name]
+            Tl = self.local_trans(name, angle)
+            T = np.dot(T,Tl)
+            self.transforms[name] = T
+
 
 
 if __name__ == '__main__':

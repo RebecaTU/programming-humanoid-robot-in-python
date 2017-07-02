@@ -54,7 +54,7 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
             T = [0] * length
             for i, name in enumerate(self.chains[effector_name]):
                 # Transformation matrix for each joint (effector!)
-                T[i] = self.transforms(name)
+                T[i] = self.transforms[name]
 
             Te = np.array([self.from_trans(T[-1])])
 
@@ -73,6 +73,7 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
             JJT = np.dot(J, J.T)
 
             d_theta = Epsilon * np.dot(np.dot(J.T, np.linalg.pinv(JJT)), error.T)
+            print d_theta
 
             for i, name in enumerate(self.chains[effector_name]):
                 current_joint[name] = current_joint[name] + np.asarray(d_theta.T)[0][1]
@@ -115,18 +116,18 @@ class InverseKinematicsAgent(ForwardKinematicsAgent):
         # YOUR CODE HERE
         joint_angles = self.inverse_kinematics(effector_name, transform)
 
-        times = []
-        names = self.chains[effector_name]
-        keys = []
+        #times =
+        #names = self.chains[effector_name]
+        #keys = []
         # I don't have idea how to change the time in the keyframes
-        current_joint = self.perception.joint
+        #current_joint = self.perception.joint
 
-        for i, name in enumerate(names):
-            keys.insert(i, [current_joint[name]], [joint_angles[name]])
+        #for i, name in enumerate(names):
+         #   keys.insert(i, [current_joint[name]], [joint_angles[name]])
 
 
-        self.keyframes = (names, times , keys)  # the result joint angles have to fill in
-
+        #self.keyframes = (names, times , keys)  # the result joint angles have to fill in
+        self.target_joints.update(joint_angles)
 
 if __name__ == '__main__':
     agent = InverseKinematicsAgent()
